@@ -1,3 +1,6 @@
+module Kcl
+end
+
 require 'kcl/checkpointer'
 require 'kcl/checkpoints/sentinel'
 require 'kcl/config'
