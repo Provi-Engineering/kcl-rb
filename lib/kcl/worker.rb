@@ -1,7 +1,7 @@
 require 'eventmachine'
 
 class Kcl::Worker
-  PROCESS_INTERVAL = 1 # by sec
+  PROCESS_INTERVAL = 60 # by sec
 
   def self.run(id, record_processor_factory)
     worker = self.new(id, record_processor_factory)
@@ -26,6 +26,8 @@ class Kcl::Worker
     EM.run do
       trap_signals
 
+      sync_shards!
+      consume_shards! if available_lease_shard?
       @timer = EM::PeriodicTimer.new(PROCESS_INTERVAL) do
         sync_shards!
         consume_shards! if available_lease_shard?
