@@ -43,7 +43,7 @@ module Kcl::Proxies
     # @return [Hash]
     def get_records(shard_iterator)
       res = @client.get_records({ shard_iterator: shard_iterator })
-      { records: res.records, next_shard_iterator: res.next_shard_iterator }
+      { records: res.records, millis_behind_latest: res.millis_behind_latest, next_shard_iterator: res.next_shard_iterator }
     end
 
     # @param [Hash] data

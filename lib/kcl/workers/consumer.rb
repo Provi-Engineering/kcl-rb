@@ -20,7 +20,6 @@ module Kcl::Workers
 
       loop do
         result = @kinesis.get_records(shard_iterator)
-
         records_input = create_records_input(
           result[:records],
           result[:millis_behind_latest],
@@ -29,7 +28,7 @@ module Kcl::Workers
         @record_processor.process_records(records_input)
 
         shard_iterator = result[:next_shard_iterator]
-        break if result[:records].empty? || shard_iterator.nil?
+        break if result[:records].empty? && result[:millis_behind_latest] == 0
       end
 
       shutdown_reason = shard_iterator.nil? ?
