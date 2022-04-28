@@ -30,6 +30,11 @@ module Kcl
   end
 
   def self.logger
-    @_logger ||= (config.logger || Kcl::Logger.new($stdout))
+    return @_logger if @_logger
+
+    @_logger = (config.logger || Kcl::Logger.new($stdout))
+    @_logger.level = (config.log_level || Logger::INFO)
+
+    @_logger
   end
 end
