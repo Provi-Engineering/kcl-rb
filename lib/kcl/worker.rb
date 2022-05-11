@@ -21,7 +21,7 @@ class Kcl::Worker
   # Start consuming data from the stream,
   # and pass it to the application record processors.
   def start
-    Kcl.logger.info("Start worker at #{object_id}")
+    Kcl.logger.debug("Start worker at #{object_id}")
 
     EM.run do
       trap_signals
@@ -35,7 +35,7 @@ class Kcl::Worker
     end
 
     cleanup
-    Kcl.logger.info("Finish worker at #{object_id}")
+    Kcl.logger.debug("Finish worker at #{object_id}")
   rescue => e
     Kcl.logger.error("#{e.class}: #{e.message}")
     raise e
@@ -75,14 +75,14 @@ class Kcl::Worker
         shard.parent_shard_id,
         shard.sequence_number_range
       )
-      Kcl.logger.info("Found new shard at shard_id: #{shard.shard_id}")
+      Kcl.logger.debug("Found new shard at shard_id: #{shard.shard_id}")
     end
 
     @live_shards.each do |shard_id, alive|
       next if alive
       checkpointer.remove_lease(@shards[shard_id])
       @shards.delete(shard_id)
-      Kcl.logger.info("Remove shard at shard_id: #{shard_id}")
+      Kcl.logger.debug("Remove shard at shard_id: #{shard_id}")
     end
 
     @shards
@@ -107,7 +107,7 @@ class Kcl::Worker
       begin
         shard = checkpointer.fetch_checkpoint(shard)
       rescue Kcl::Errors::CheckpointNotFoundError
-        Kcl.logger.info("Not found checkpoint of shard at #{shard.to_h}")
+        Kcl.logger.debug("Not found checkpoint of shard at #{shard.to_h}")
         next
       end
       # shard is closed and processed all records
@@ -126,7 +126,7 @@ class Kcl::Worker
           consumer.consume!
         ensure
           shard = checkpointer.remove_lease_owner(shard)
-          Kcl.logger.info("Finish to consume shard at shard_id: #{shard_id}")
+          Kcl.logger.debug("Finish to consume shard at shard_id: #{shard_id}")
         end
       end
     end
@@ -138,7 +138,7 @@ class Kcl::Worker
   def kinesis
     if @kinesis.nil?
       @kinesis = Kcl::Proxies::KinesisProxy.new(Kcl.config)
-      Kcl.logger.info('Created Kinesis session in worker')
+      Kcl.logger.debug('Created Kinesis session in worker')
     end
     @kinesis
   end
@@ -146,7 +146,7 @@ class Kcl::Worker
   def checkpointer
     if @checkpointer.nil?
       @checkpointer = Kcl::Checkpointer.new(Kcl.config)
-      Kcl.logger.info('Created Checkpoint in worker')
+      Kcl.logger.debug('Created Checkpoint in worker')
     end
     @checkpointer
   end

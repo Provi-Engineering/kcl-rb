@@ -30,7 +30,7 @@ class Kcl::Checkpointer
         write_capacity_units: config.dynamodb_write_capacity
       }
     )
-    Kcl.logger.info("Created DynamoDB table: #{@table_name}")
+    Kcl.logger.debug("Created DynamoDB table: #{@table_name}")
   end
 
   # Retrieves the checkpoint for the given shard
@@ -49,7 +49,7 @@ class Kcl::Checkpointer
     if checkpoint[DYNAMO_DB_LEASE_OWNER_KEY]
       shard.assigned_to = checkpoint[DYNAMO_DB_LEASE_OWNER_KEY]
     end
-    Kcl.logger.info("Retrieves checkpoint of shard at #{shard.to_h}")
+    Kcl.logger.debug("Retrieves checkpoint of shard at #{shard.to_h}")
 
     shard
   end
@@ -70,7 +70,7 @@ class Kcl::Checkpointer
 
     result = @dynamodb.put_item(@table_name, item)
     if result
-      Kcl.logger.info("Write checkpoint of shard at #{shard.to_h}")
+      Kcl.logger.debug("Write checkpoint of shard at #{shard.to_h}")
     else
       Kcl.logger.info("Failed to write checkpoint for shard at #{shard.to_h}")
     end
@@ -103,7 +103,7 @@ class Kcl::Checkpointer
         ':assigned_to' => assigned_to,
         ':lease_timeout' => lease_timeout
       }
-      Kcl.logger.info("Attempting to get a lock for shard: #{shard.to_h}")
+      Kcl.logger.debug("Attempting to get a lock for shard: #{shard.to_h}")
     else
       condition_expression = 'attribute_not_exists(assigned_to)'
       expression_attributes = nil
@@ -130,7 +130,7 @@ class Kcl::Checkpointer
     if result
       shard.assigned_to   = next_assigned_to
       shard.lease_timeout = next_lease_timeout
-      Kcl.logger.info("Get lease for shard at #{shard.to_h}")
+      Kcl.logger.debug("Get lease for shard at #{shard.to_h}")
     else
       Kcl.logger.info("Failed to get lease for shard at #{shard.to_h}")
     end
@@ -150,7 +150,7 @@ class Kcl::Checkpointer
       shard.assigned_to   = nil
       shard.checkpoint    = nil
       shard.lease_timeout = nil
-      Kcl.logger.info("Remove lease for shard at #{shard.to_h}")
+      Kcl.logger.debug("Remove lease for shard at #{shard.to_h}")
     else
       Kcl.logger.info("Failed to remove lease for shard at #{shard.to_h}")
     end
@@ -169,7 +169,7 @@ class Kcl::Checkpointer
     )
     if result
       shard.assigned_to = nil
-      Kcl.logger.info("Remove lease owner for shard at #{shard.to_h}")
+      Kcl.logger.debug("Remove lease owner for shard at #{shard.to_h}")
     else
       Kcl.logger.info("Failed to remove lease owner for shard at #{shard.to_h}")
     end
