@@ -4,7 +4,7 @@ module KclDemo
   class DemoRecordProcessor < Kcl::RecordProcessor
     # @implement
     def after_initialize(initialization_input)
-      Kcl.logger.debug("Initialization at #{initialization_input}")
+      Kcl.logger.info("Initialization at #{initialization_input}")
     end
 
     # @implement

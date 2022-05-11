@@ -49,7 +49,7 @@ class Kcl::Worker
     end
     EM.stop
 
-    Kcl.logger.debug("Shutdown worker with signal #{signal} at #{object_id}")
+    Kcl.logger.info("Shutdown worker with signal #{signal} at #{object_id}")
   rescue => e
     Kcl.logger.error("#{e.class}: #{e.message}")
     raise e

@@ -72,7 +72,7 @@ class Kcl::Checkpointer
     if result
       Kcl.logger.debug("Write checkpoint of shard at #{shard.to_h}")
     else
-      Kcl.logger.debug("Failed to write checkpoint for shard at #{shard.to_h}")
+      Kcl.logger.info("Failed to write checkpoint for shard at #{shard.to_h}")
     end
 
     shard
@@ -132,7 +132,7 @@ class Kcl::Checkpointer
       shard.lease_timeout = next_lease_timeout
       Kcl.logger.debug("Get lease for shard at #{shard.to_h}")
     else
-      Kcl.logger.debug("Failed to get lease for shard at #{shard.to_h}")
+      Kcl.logger.info("Failed to get lease for shard at #{shard.to_h}")
     end
 
     shard
@@ -152,7 +152,7 @@ class Kcl::Checkpointer
       shard.lease_timeout = nil
       Kcl.logger.debug("Remove lease for shard at #{shard.to_h}")
     else
-      Kcl.logger.debug("Failed to remove lease for shard at #{shard.to_h}")
+      Kcl.logger.info("Failed to remove lease for shard at #{shard.to_h}")
     end
 
     shard
@@ -171,7 +171,7 @@ class Kcl::Checkpointer
       shard.assigned_to = nil
       Kcl.logger.debug("Remove lease owner for shard at #{shard.to_h}")
     else
-      Kcl.logger.debug("Failed to remove lease owner for shard at #{shard.to_h}")
+      Kcl.logger.info("Failed to remove lease owner for shard at #{shard.to_h}")
     end
 
     shard
