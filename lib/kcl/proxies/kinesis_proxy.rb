@@ -15,6 +15,7 @@ module Kcl::Proxies
         }
       )
       @stream_name = config.kinesis_stream_name
+      @record_limit = config.record_limit
     end
 
     # @return [Array]
@@ -42,7 +43,7 @@ module Kcl::Proxies
     # @param [String] shard_iterator
     # @return [Hash]
     def get_records(shard_iterator)
-      res = @client.get_records({ shard_iterator: shard_iterator })
+      res = @client.get_records({ shard_iterator: shard_iterator, limit: @record_limit })
       { records: res.records, millis_behind_latest: res.millis_behind_latest, next_shard_iterator: res.next_shard_iterator }
     end
 

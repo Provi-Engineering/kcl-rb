@@ -12,6 +12,7 @@ class Kcl::Config
     :logger,
     :log_level,
     :max_lease_count,
+    :record_limit,
     :use_ssl,
     :worker_count
 
@@ -29,6 +30,7 @@ class Kcl::Config
     @kinesis_stream_name     = nil
     @logger                  = nil
     @max_lease_count         = 1
+    @record_limit            = 10_000
     @use_ssl                 = false
     @worker_count            = 1
   end
