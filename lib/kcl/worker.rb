@@ -99,7 +99,8 @@ class Kcl::Worker
 
   # Process records by shard
   def consume_shards!
-    threads = []
+    thread_group = ThreadGroup.new
+
     @shards.each do |shard_id, shard|
       # already owner of the shard
       next if shard.lease_owner == @id
@@ -115,7 +116,7 @@ class Kcl::Worker
 
       shard = checkpointer.lease(shard, @id)
 
-      threads << Thread.new do
+      thread_group.add(Thread.new do
         begin
           consumer = Kcl::Workers::Consumer.new(
             shard,
@@ -128,9 +129,9 @@ class Kcl::Worker
           shard = checkpointer.remove_lease_owner(shard)
           Kcl.logger.debug("Finish to consume shard at shard_id: #{shard_id}")
         end
-      end
+        end)
     end
-    threads.each(&:join)
+    thread_group.list.each(&:join)
   end
 
   private

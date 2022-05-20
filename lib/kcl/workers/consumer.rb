@@ -29,6 +29,14 @@ module Kcl::Workers
 
         shard_iterator = result[:next_shard_iterator]
         break if result[:records].empty? && result[:millis_behind_latest] == 0
+      rescue AWS::Kinesis::Errors::ExpiredIteratorException => e
+        Thread.current.group.list.each do |thread|
+          next if thread.object_id = Thread.current.object_id
+
+          thread.kill
+        end
+
+        raise e
       end
 
       shutdown_reason = shard_iterator.nil? ?
