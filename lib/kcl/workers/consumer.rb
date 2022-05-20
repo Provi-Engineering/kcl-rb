@@ -4,6 +4,8 @@ module Kcl::Workers
   # - send to record processor
   # - create record checkpoint
   class Consumer
+    LEASE_RETRY=3
+
     def initialize(shard, record_processor, kinesis_proxy, checkpointer)
       @shard = shard
       @record_processor = record_processor
@@ -74,6 +76,19 @@ module Kcl::Workers
         shutdown_reason,
         record_checkpointer
       )
+    end
+
+    def safe_get_records(shard_iterator, count=LEASE_RETRY)
+      @klnesis.get_records(shard_iterator)
+    rescue AWS::Kinesis::Errors::ExpiredIteratorException => e
+      raise e if count == 0
+
+      Kcl.logger.debug("Received expired iterator exception: #{e.inspect}")
+      assigned_to = @shard.assigned_to
+      @checkpointer.remove_lease_owner(@shard)
+      @shard = @checkpointer.lease(@shard, assigned_to)
+      shard_iterator = start_shard_iterator
+      safe_get_records(shard_iterator, count - 1)
     end
   end
 end
