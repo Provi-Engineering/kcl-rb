@@ -126,13 +126,13 @@ class Kcl::Worker
               checkpointer
             )
             consumer.consume!
-          rescue AWS::Kinesis::Errors::ExpiredIteratorException => e
+          rescue StandardError => e
             Thread.current.group.list.each do |thread|
-              next if thread.object_id = Thread.current.object_id
+              next if thread.object_id == Thread.current.object_id
 
               thread.kill
             end
-
+            Kcl.logger.debug("Killed threads due to error #{e.inspect}, Thread: #{Thread.current.object_id}")
             raise e
           ensure
             shard = checkpointer.remove_lease_owner(shard)
