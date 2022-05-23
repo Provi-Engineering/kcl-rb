@@ -126,6 +126,14 @@ class Kcl::Worker
               checkpointer
             )
             consumer.consume!
+          rescue AWS::Kinesis::Errors::ExpiredIteratorException => e
+            Thread.current.group.list.each do |thread|
+              next if thread.object_id = Thread.current.object_id
+
+              thread.kill
+            end
+
+            raise e
           ensure
             shard = checkpointer.remove_lease_owner(shard)
             Kcl.logger.debug("Finish to consume shard at shard_id: #{shard_id}")
