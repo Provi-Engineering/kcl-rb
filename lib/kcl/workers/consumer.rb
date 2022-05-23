@@ -19,8 +19,8 @@ module Kcl::Workers
       shard_iterator = start_shard_iterator
 
       loop do
-        if Random.rand(10).zero?
-          break if Thread.current.group.list.any?(&:stop?)
+        if check_peers?
+          break if idle_peers?
         end
 
         result = @kinesis.get_records(shard_iterator)
@@ -78,6 +78,14 @@ module Kcl::Workers
         shutdown_reason,
         record_checkpointer
       )
+    end
+
+    def check_peers?
+      Random.rand(Kcl.config.idle_thread_check_frequency).zero?
+    end
+
+    def idle_peers?
+      Thread.current.group.list.any?(&:stop?)
     end
   end
 end
