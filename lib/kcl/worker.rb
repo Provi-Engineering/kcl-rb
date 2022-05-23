@@ -116,20 +116,22 @@ class Kcl::Worker
 
       shard = checkpointer.lease(shard, @id)
 
-      thread_group.add(Thread.new do
-        begin
-          consumer = Kcl::Workers::Consumer.new(
-            shard,
-            @record_processor_factory.create_processor,
-            kinesis,
-            checkpointer
-          )
-          consumer.consume!
-        ensure
-          shard = checkpointer.remove_lease_owner(shard)
-          Kcl.logger.debug("Finish to consume shard at shard_id: #{shard_id}")
+      thread_group.add(
+        Thread.new do
+          begin
+            consumer = Kcl::Workers::Consumer.new(
+              shard,
+              @record_processor_factory.create_processor,
+              kinesis,
+              checkpointer
+            )
+            consumer.consume!
+          ensure
+            shard = checkpointer.remove_lease_owner(shard)
+            Kcl.logger.debug("Finish to consume shard at shard_id: #{shard_id}")
+          end
         end
-        end)
+      )
     end
     thread_group.list.each(&:join)
   end
