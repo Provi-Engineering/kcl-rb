@@ -40,4 +40,26 @@ RSpec.describe Kcl::Worker do
       it { expect(subject).to be_truthy }
     end
   end
+
+  describe '#consume_shards!' do
+    let(:consumer) { instance_double(Kcl::Workers::Consumer) }
+
+    class ExpectedWorkerError < StandardError; end
+
+    it 'halts other threads, logging errors' do
+      allow(Kcl.logger).to receive(:debug).and_call_original
+      allow(Kcl::Workers::Consumer).to receive(:new).and_return(consumer)
+
+      allow(consumer).to receive(:consume!).and_raise(ExpectedWorkerError, 'Thread encountered a problem')
+
+      worker.sync_shards!
+      expect { worker.consume_shards! }.to raise_error(ExpectedWorkerError)
+
+      # each thread logs a problem
+      expect(Kcl.logger).to have_received(:debug).with(/Killed threads due to error/).exactly(5).times
+
+      # ensure block is run for each thread
+      expect(Kcl.logger).to have_received(:debug).with(/Finish to consume shard/).exactly(5).times
+    end
+  end
 end
