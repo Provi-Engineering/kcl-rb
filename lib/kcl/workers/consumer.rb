@@ -19,6 +19,10 @@ module Kcl::Workers
       shard_iterator = start_shard_iterator
 
       loop do
+        if Random.rand(10).zero?
+          break if Thread.current.group.list.any?(&:stop?)
+        end
+
         result = @kinesis.get_records(shard_iterator)
         records_input = create_records_input(
           result[:records],
