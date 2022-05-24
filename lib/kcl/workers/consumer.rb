@@ -80,7 +80,7 @@ module Kcl::Workers
       )
     end
 
-    def safe_get_records(shard_iterator, count=LEASE_RETRY)
+    def safe_get_records(shard_iterator, count = LEASE_RETRY)
       @kinesis.get_records(shard_iterator)
     rescue Aws::Kinesis::Errors::ExpiredIteratorException => e
       raise e if count == 0
@@ -88,6 +88,7 @@ module Kcl::Workers
       Kcl.logger.debug("Received expired iterator exception: #{e.inspect}")
       assigned_to = @shard.assigned_to
       @checkpointer.remove_lease_owner(@shard)
+      @shard = @checkpointer.fetch_checkpoint(@shard)
       @shard = @checkpointer.lease(@shard, assigned_to)
       shard_iterator = start_shard_iterator
       safe_get_records(shard_iterator, count - 1)
