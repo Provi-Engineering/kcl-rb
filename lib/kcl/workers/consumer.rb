@@ -1,3 +1,5 @@
+require 'aws-sdk-kinesis'
+
 module Kcl::Workers
   # Shard : Consumer = 1 : 1
   # - get records from stream
