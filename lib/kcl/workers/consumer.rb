@@ -21,7 +21,7 @@ module Kcl::Workers
       shard_iterator = start_shard_iterator
 
       loop do
-        result = @kinesis.get_records(shard_iterator)
+        result = safe_get_records(shard_iterator)
         records_input = create_records_input(
           result[:records],
           result[:millis_behind_latest],
@@ -79,8 +79,8 @@ module Kcl::Workers
     end
 
     def safe_get_records(shard_iterator, count=LEASE_RETRY)
-      @klnesis.get_records(shard_iterator)
-    rescue AWS::Kinesis::Errors::ExpiredIteratorException => e
+      @kinesis.get_records(shard_iterator)
+    rescue Aws::Kinesis::Errors::ExpiredIteratorException => e
       raise e if count == 0
 
       Kcl.logger.debug("Received expired iterator exception: #{e.inspect}")
