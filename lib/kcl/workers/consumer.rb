@@ -84,7 +84,6 @@ module Kcl::Workers
       )
     end
 
-
     def safe_get_records(shard_iterator, count = LEASE_RETRY)
       @kinesis.get_records(shard_iterator)
     rescue Aws::Kinesis::Errors::ExpiredIteratorException => e
@@ -96,7 +95,9 @@ module Kcl::Workers
       @shard = @checkpointer.fetch_checkpoint(@shard)
       @shard = @checkpointer.lease(@shard, assigned_to)
       shard_iterator = start_shard_iterator
+      Kcl.logger.debug("Refreshed shard iterator, calling get records again")
       safe_get_records(shard_iterator, count - 1)
+    end
 
     def check_peers?
       Random.rand(Kcl.config.idle_thread_check_frequency).zero?
