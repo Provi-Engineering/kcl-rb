@@ -7,6 +7,7 @@ class Kcl::Config
     :dynamodb_read_capacity,
     :dynamodb_write_capacity,
     :dynamodb_failover_seconds,
+    :idle_thread_check_frequency,
     :kinesis_endpoint,
     :kinesis_stream_name,
     :logger,
@@ -26,6 +27,7 @@ class Kcl::Config
     @dynamodb_read_capacity  = 10
     @dynamodb_write_capacity = 10
     @dynamodb_failover_seconds = 10
+    @idle_thread_check_frequency = 10
     @kinesis_endpoint        = 'https://localhost:4566'
     @kinesis_stream_name     = nil
     @logger                  = nil

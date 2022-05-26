@@ -1,9 +1,13 @@
+require 'aws-sdk-kinesis'
+
 module Kcl::Workers
   # Shard : Consumer = 1 : 1
   # - get records from stream
   # - send to record processor
   # - create record checkpoint
   class Consumer
+    LEASE_RETRY=3
+
     def initialize(shard, record_processor, kinesis_proxy, checkpointer)
       @shard = shard
       @record_processor = record_processor
@@ -19,7 +23,11 @@ module Kcl::Workers
       shard_iterator = start_shard_iterator
 
       loop do
-        result = @kinesis.get_records(shard_iterator)
+        if check_peers?
+          break if idle_peers?
+        end
+        result = safe_get_records(shard_iterator)
+
         records_input = create_records_input(
           result[:records],
           result[:millis_behind_latest],
@@ -74,6 +82,29 @@ module Kcl::Workers
         shutdown_reason,
         record_checkpointer
       )
+    end
+
+    def safe_get_records(shard_iterator, count = LEASE_RETRY)
+      @kinesis.get_records(shard_iterator)
+    rescue Aws::Kinesis::Errors::ExpiredIteratorException => e
+      raise e if count == 0
+
+      Kcl.logger.debug("Received expired iterator exception: #{e.inspect}")
+      assigned_to = @shard.assigned_to
+      @checkpointer.remove_lease_owner(@shard)
+      @shard = @checkpointer.fetch_checkpoint(@shard)
+      @shard = @checkpointer.lease(@shard, assigned_to)
+      shard_iterator = start_shard_iterator
+      Kcl.logger.debug("Refreshed shard iterator, calling get records again")
+      safe_get_records(shard_iterator, count - 1)
+    end
+
+    def check_peers?
+      Random.rand(Kcl.config.idle_thread_check_frequency).zero?
+    end
+
+    def idle_peers?
+      Thread.current.group.list.any?(&:stop?)
     end
   end
 end
