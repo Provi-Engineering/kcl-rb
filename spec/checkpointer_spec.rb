@@ -52,6 +52,16 @@ RSpec.describe Kcl::Checkpointer do
     end
   end
 
+  describe "#lease with a parent shard id" do
+    let(:next_assigned_to) { 'test-worker' }
+
+    it do
+      shard.instance_variable_set('@parent_shard_id', "SomeString")
+
+      checkpointer.lease(shard, next_assigned_to)
+    end
+  end
+
   describe '#remove_lease' do
     let(:next_assigned_to) { 'test-worker' }
 
