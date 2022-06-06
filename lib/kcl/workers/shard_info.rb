@@ -11,7 +11,7 @@ module Kcl::Workers
     # @param [Hash] sequence_number_range
     def initialize(shard_id, parent_shard_id, sequence_number_range)
       @shard_id        = shard_id
-      @parent_shard_id = parent_shard_id || 0
+      @parent_shard_id = parent_shard_id
       @starting_sequence_number = sequence_number_range[:starting_sequence_number]
       @ending_sequence_number   = sequence_number_range[:ending_sequence_number]
       @assigned_to     = nil
