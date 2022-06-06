@@ -23,9 +23,6 @@ module Kcl::Workers
       shard_iterator = start_shard_iterator
 
       loop do
-        if check_peers?
-          break if idle_peers?
-        end
         result = safe_get_records(shard_iterator)
 
         records_input = create_records_input(
@@ -97,14 +94,6 @@ module Kcl::Workers
       shard_iterator = start_shard_iterator
       Kcl.logger.debug("Refreshed shard iterator, calling get records again")
       safe_get_records(shard_iterator, count - 1)
-    end
-
-    def check_peers?
-      Random.rand(Kcl.config.idle_thread_check_frequency).zero?
-    end
-
-    def idle_peers?
-      Thread.current.group.list.any?(&:stop?)
     end
   end
 end
