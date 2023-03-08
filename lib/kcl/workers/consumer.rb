@@ -13,6 +13,7 @@ module Kcl::Workers
       @record_processor = record_processor
       @kinesis = kinesis_proxy
       @checkpointer = checkpointer
+      @last_result = nil
     end
 
     def consume!
@@ -26,7 +27,7 @@ module Kcl::Workers
         result = safe_get_records(shard_iterator)
 
         records_input = create_records_input(
-          result[:records],
+          only_unseen_records(result[:records]),
           result[:millis_behind_latest],
           record_checkpointer
         )
@@ -34,6 +35,8 @@ module Kcl::Workers
 
         shard_iterator = result[:next_shard_iterator]
         break if result[:records].empty? && result[:millis_behind_latest] == 0
+
+        @last_result = result
       end
 
       shutdown_reason = shard_iterator.nil? ?
@@ -42,6 +45,17 @@ module Kcl::Workers
       shutdown_input = create_shutdown_input(shutdown_reason, record_checkpointer)
       @record_processor.shutdown(shutdown_input)
     end
+
+    def only_unseen_records(records)
+      return records unless @last_result.present?
+
+      sequence_numbers = Set.new(@last_result[:records].map(&:sequence_number))
+
+      records.reject do |r|
+        sequence_numbers.include?(r.sequence_number)
+      end
+    end
+
 
     def start_shard_iterator
       shard = @checkpointer.fetch_checkpoint(@shard)
